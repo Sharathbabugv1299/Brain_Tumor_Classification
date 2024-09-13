@@ -7,6 +7,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, BatchNormalization
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 # Step 1: Define the model architecture
 def create_model():
     base_model = ResNet50(weights=None, include_top=False, input_shape=(224, 224, 3))
