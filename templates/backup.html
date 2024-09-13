@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Classification</title>
+    <style>
+        /* Set up the full-page video background */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container for the main content */
+        .container {
+            position: absolute;
+            z-index: 2;
+            background-color: rgba(248, 245, 245, 0.51);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 3px 13px 18px rgba(0, 0, 0, 0.59);
+            backdrop-filter: blur(12px);
+            width: 85%;
+            height: 78%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Fixed header for the title */
+        .header {
+            position: relative;
+            top: 0;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1, h2 {
+            color: #4a4a4a;
+            margin: 5px 0;
+        }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: 1.5px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        /* Video background setup */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 220%;
+            object-fit: cover;
+            transform: rotate(-90deg);
+            filter: blur(2px);
+            zoom: revert-layer;
+            margin-top: -550px;
+        }
+
+        /* Upload section adjustments */
+        .upload-section {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #5a67d8;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #434aa8;
+        }
+
+        /* Adjustments to show image */
+        #uploaded-image {
+            display: none;
+            margin: 20px 20px 20px 0;
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Adjustments for two-column layout */
+        .row-2 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .row-2.splits {
+            flex-direction: row;
+        }
+
+        .row-2 .column {
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Predict button styling */
+        .button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+        }
+
+        .button:hover {
+            background-color: #3e8e41;
+            transform: scale(1.05);
+        }
+
+        /* Spinner for loading */
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        #loading-spinner img {
+            width: 50px;
+            height: 50px;
+            animation: spinnerAnimation 1s linear infinite;
+        }
+
+        @keyframes spinnerAnimation {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Result display */
+        .result {
+            font-size: 18px;
+            color: #4a4a4a;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Video background -->
+    <div class="video-background">
+        <video autoplay muted loop>
+            <source src="https://cdn.pixabay.com/video/2022/11/14/138962-770800093_large.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Content container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Brain Tumor Classification</h1>
+            <h2>By Sharath Babu</h2>
+        </div>
+
+        <!-- Row 2: Upload and Display Image -->
+        <div class="row-2" id="row-2">
+            <div class="upload-section">
+                <label for="file" class="custom-file-upload">Choose Image</label>
+                <input type="file" id="file" name="file" accept="image/*" onchange="previewImage(event)">
+            </div>
+            <img id="uploaded-image" alt="Uploaded Image Preview">
+        </div>
+
+        <!-- Row 3: Predict Button -->
+        <div class="predict-section">
+            <button id="predict-btn" class="button" onclick="classifyImage()">Predict Image</button>
+        </div>
+
+        <div id="loading-spinner">
+            <img src="static/loading.gif" alt="Loading Spinner">
+            <p>Loading...</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Powered by AI for Medical Imaging</p>
+        </footer>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+
+            reader.onload = function () {
+                var uploadedImage = document.getElementById('uploaded-image');
+                uploadedImage.src = reader.result;
+                uploadedImage.style.display = 'block';
+
+                // Make the image visible with a smooth fade-in
+                setTimeout(function () {
+                    uploadedImage.style.opacity = '1';
+                }, 50);
+
+                // Show the Predict button once the image is uploaded
+                document.getElementById('predict-btn').style.display = 'inline-block';
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function classifyImage() {
+            var fileInput = document.getElementById('file');
+            if (fileInput.files.length === 0) {
+                alert("Please upload an image before predicting.");
+                return;
+            }
+
+            // Create FormData to send the file to the server
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Show loading spinner
+            document.getElementById('loading-spinner').style.display = 'block';
+
+            // Simulate a prediction with timeout
+            setTimeout(function () {
+                document.getElementById('loading-spinner').style.display = 'none';
+
+                // Simulate prediction result
+                var result = "Predicted: Brain Tumor Detected";
+
+                // Display result in a new column
+                var row2 = document.getElementById('row-2');
+                row2.classList.add('splits');
+
+                // Create a new column for the result
+                var resultColumn = document.createElement('div');
+                resultColumn.classList.add('column');
+                resultColumn.innerHTML = `<div class="result show">${result}</div>`;
+
+                row2.appendChild(resultColumn);
+
+            }, 2000); // Simulating 2-second delay for prediction
+        }
+    </script>
+</body>
+
+</html>
